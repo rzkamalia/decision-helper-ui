@@ -9,16 +9,15 @@ import { Textarea } from "@/components/ui/textarea"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Badge } from "@/components/ui/badge"
 import {
-  Loader2,
   Plus,
   X,
   Brain,
   ArrowRight,
-  Sparkles,
+  ArrowLeft,
+  Sparkle,
   Target,
   Trophy,
   Zap,
-  Star,
   Lightbulb,
 } from "lucide-react"
 
@@ -217,7 +216,7 @@ export default function DecisionHelper() {
             <div className="flex items-center justify-center gap-3 mb-6">
               <div className="relative">
                 <Brain className="w-12 h-12 text-blue-950" />
-                <Sparkles className="w-6 h-6 text-yellow-400 absolute -top-2 -right-2 animate-spin" />
+                <Sparkle className="w-8 h-8 text-yellow-600 absolute -top-4 -right-5 animate-spin" />
               </div>
               <h1 className="text-5xl font-bold text-blue-950 bg-clip-text">
                 Decision Helper
@@ -280,7 +279,7 @@ export default function DecisionHelper() {
                             variant="outline"
                             size="icon"
                             onClick={() => removeOption(index)}
-                            className="h-14 w-14 bg-blue-200"
+                            className="h-14 w-14 bg-blue-200 hover:bg-white"
                           >
                             <X className="w-5 h-5 text-red-500" />
                           </Button>
@@ -290,7 +289,7 @@ export default function DecisionHelper() {
                     <Button
                       variant="outline"
                       onClick={addOption}
-                      className="w-full h-14 border-2 border-dashed border-blue-200 bg-transparent transition-all duration-300 text-blue-200"
+                      className="w-full h-14 border-2 border-dashed border-blue-200 bg-transparent transition-all duration-300 text-blue-200 hover:bg-blue-200"
                     >
                       <Plus className="w-5 h-5" />
                       Add Another Option
@@ -301,12 +300,11 @@ export default function DecisionHelper() {
                 <Button
                   onClick={generateQuestions}
                   disabled={!canProceedToQuestions || loading}
-                  className="w-full h-16 text-xl font-semibold bg-yellow-400 hover:bg-yellow-400 transition-all duration-300 transform hover:scale-105"
+                  className="w-full h-16 text-xl text-blue-950 font-semibold bg-yellow-600 hover:bg-yellow-600 transition-all duration-300 transform hover:scale-105"
                   size="lg"
                 >
                   {loading ? (
                     <>
-                      <Loader2 className="w-6 h-6 animate-spin" />
                       Analyzing Your Context and Options...
                     </>
                   ) : (
@@ -322,107 +320,106 @@ export default function DecisionHelper() {
 
           {/* Questions Step */}
           {step === "questions" && (
-            <div className="space-y-8">
-            <Card className="shadow-2xl bg-blue-950 backdrop-blur-xl animate-slide-up">
-                <CardHeader className="text-center">
-                  <p className="text-blue-200 text-lg font-medium mb-4">
-                    {currentQuestion + 1} of {questions.length} questions
-                  </p>
-                </CardHeader>
-                <CardContent className="space-y-8">
-                  {questions.length > 0 && (
-                    <div className="space-y-6">
-                      <div className="text-center">
-                        <h3 className="text-2xl font-semibold text-blue-200 mb-6 leading-relaxed">
-                          {questions[currentQuestion]?.question}
-                        </h3>
-                      </div>
-
-                      <RadioGroup
-                        value={answers[currentQuestion] || ""}
-                        onValueChange={(value) => {
-                          const newAnswers = { ...answers, [currentQuestion]: value };
-                          setAnswers(newAnswers);
-                          
-                          // Auto-advance to next question after a short delay (but not on last question)
-                          if (currentQuestion < questions.length - 1) {
-                            setTimeout(() => {
-                              setCurrentQuestion(currentQuestion + 1);
-                            }, 200);
-                          }
-                        }}
-                        className="space-y-4"
-                      >
-                        {questions[currentQuestion]?.answer_choices.map((choice, choiceIndex) => (
-                          <div key={choiceIndex} className="group">
-                            <div className={`flex items-center p-4 rounded-xl border transition-all duration-300 cursor-pointer ${
-                              answers[currentQuestion] === choice 
-                                ? 'bg-yellow-400 text-blue-950' 
-                                : 'bg-blue-950 hover:bg-blue-200 text-blue-200 hover:text-blue-950'
-                            }`}>
-                              <RadioGroupItem
-                                value={choice}
-                                id={`q${currentQuestion}-${choiceIndex}`}
-                                className="sr-only"
-                              />
-                              <Label
-                                htmlFor={`q${currentQuestion}-${choiceIndex}`}
-                                className="cursor-pointer text-lg leading-relaxed flex-1 transition-colors duration-300 w-full"
-                              >
-                                {choice}
-                              </Label>
-                            </div>
-                          </div>
-                        ))}
-                      </RadioGroup>
+          <div className="space-y-8">
+          <Card className="shadow-2xl bg-blue-950 backdrop-blur-xl animate-slide-up">
+              <CardHeader className="text-center">
+                <p className="text-blue-200 text-lg font-medium mb-4">
+                  {currentQuestion + 1} of {questions.length} questions
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-8">
+                {questions.length > 0 && (
+                  <div className="space-y-6">
+                    <div className="text-center">
+                      <h3 className="text-2xl font-semibold text-blue-200 mb-6 leading-relaxed">
+                        {questions[currentQuestion]?.question}
+                      </h3>
                     </div>
-                  )}
 
-                  <div className="flex gap-4">
+                    <RadioGroup
+                      value={answers[currentQuestion] || ""}
+                      onValueChange={(value) => {
+                        const newAnswers = { ...answers, [currentQuestion]: value };
+                        setAnswers(newAnswers);
+                        
+                        // Auto-advance to next question after a short delay (but not on last question)
+                        if (currentQuestion < questions.length - 1) {
+                          setTimeout(() => {
+                            setCurrentQuestion(currentQuestion + 1);
+                          }, 300);
+                        }
+                      }}
+                      className="space-y-4"
+                    >
+                      {questions[currentQuestion]?.answer_choices.map((choice, choiceIndex) => (
+                        <div key={choiceIndex} className="group">
+                          <div className={`flex items-center p-4 rounded-xl border transition-all duration-300 cursor-pointer ${
+                            answers[currentQuestion] === choice 
+                              ? 'bg-yellow-600 text-blue-950' 
+                              : 'bg-blue-950 hover:bg-blue-200 text-blue-200 hover:text-blue-950'
+                          }`}>
+                            <RadioGroupItem
+                              value={choice}
+                              id={`q${currentQuestion}-${choiceIndex}`}
+                              className="sr-only"
+                            />
+                            <Label
+                              htmlFor={`q${currentQuestion}-${choiceIndex}`}
+                              className="cursor-pointer text-lg leading-relaxed flex-1 transition-colors duration-300 w-full"
+                            >
+                              {choice}
+                            </Label>
+                          </div>
+                        </div>
+                      ))}
+                    </RadioGroup>
+                  </div>
+                )}
+
+                <div className="flex gap-4">
+                  <Button
+                    variant="outline"
+                    onClick={prevQuestion}
+                    disabled={currentQuestion === 0}
+                    className="flex-1 h-12 bg-blue-200 text-blue-950 hover:bg-blue-950 hover:text-blue-200"
+                  >
+                    <ArrowLeft className="w-4 h-4 ml-2" />
+                    Previous
+                  </Button>
+
+                  {currentQuestion < questions.length - 1 ? (
                     <Button
                       variant="outline"
-                      onClick={prevQuestion}
-                      disabled={currentQuestion === 0}
+                      onClick={nextQuestion}
                       className="flex-1 h-12 bg-blue-200 text-blue-950 hover:bg-blue-950 hover:text-blue-200"
                     >
-                      Previous
+                      Next Question
+                      <ArrowRight className="w-4 h-4 ml-2" />
                     </Button>
+                  ) : (
+                    <Button
+                      onClick={generateDecision}
+                      disabled={Object.keys(answers).length === 0 || loading}
+                      className="flex-1 h-12 text-blue-950 bg-yellow-600 hover:bg-yellow-600 hover:scale-105"
+                    >
+                      {loading ? (
+                        <>
+                          Analyzing...
+                        </>
+                      ) : (
+                        <>
+                          <Trophy className="w-5 h-5" />
+                          Get My Decision
+                        </>
+                      )}
+                    </Button>
+                  )}
+                </div>
 
-                    {currentQuestion < questions.length - 1 ? (
-                      <Button
-                        variant="outline"
-                        onClick={nextQuestion}
-                        disabled={!answers[currentQuestion]}
-                        className="flex-1 h-12 bg-blue-200 text-blue-950 hover:bg-blue-950 hover:text-blue-200"
-                      >
-                        Next Question
-                        <ArrowRight className="w-4 h-4 ml-2" />
-                      </Button>
-                    ) : (
-                      <Button
-                        onClick={generateDecision}
-                        disabled={!canProceedToDecision || loading}
-                        className="flex-1 h-12 text-blue-950 bg-yellow-400 hover:bg-yellow-400 hover:scale-105"
-                      >
-                        {loading ? (
-                          <>
-                            <Loader2 className="w-5 h-5 animate-spin" />
-                            Analyzing...
-                          </>
-                        ) : (
-                          <>
-                            <Trophy className="w-5 h-5" />
-                            Get My Decision
-                          </>
-                        )}
-                      </Button>
-                    )}
-                  </div>
-
-                </CardContent>
-              </Card>
-            </div>
-          )}
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
           {/* Result Step */}
           {step === "result" && decision && (
@@ -431,14 +428,14 @@ export default function DecisionHelper() {
                 <CardHeader className="text-center pb-8">
                   <div className="flex items-center justify-center gap-3 mb-6">
                     <div className="relative">
-                      <Trophy className="w-16 h-16 text-blue-200" />
-                      <Star className="w-6 h-6 text-yellow-400 absolute -top-2 -right-2 animate-spin" />
+                      <Trophy className="w-12 h-12 text-blue-200" />
+                      <Sparkle className="w-8 h-8 text-yellow-600 absolute -top-4 -right-5 animate-spin" />
                     </div>
                   </div>
                   <CardTitle className="text-2xl text-blue-200 mb-4">🎉 Your Perfect Choice 🎉</CardTitle>
                   <div className="inline-block">
-                    <Badge className="text-4xl px-8 py-3 bg-yellow-400 text-blue-950 font-bold">
-                      {decision.chosen_option}
+                    <Badge className="text-4xl rounded-none px-4 py-4 bg-yellow-600 text-blue-950 font-bold hover:bg-yellow-600">
+                      {decision.chosen_option} 
                     </Badge>
                   </div>
                 </CardHeader>
@@ -453,9 +450,8 @@ export default function DecisionHelper() {
 
                   <Button
                     onClick={resetForm}
-                    className="w-full h-16 text-xl font-semibold bg-gradient-to-r from-blue-950 to-blue-200 transition-all duration-300 transform hover:scale-105"
+                    className="w-full h-16 text-l bg-blue-200 hover:bg-blue-950 text-blue-950 hover:text-blue-200 border transition-all duration-300 transform hover:scale-105"
                   >
-                    <Sparkles className="w-6 h-6 mr-3" />
                     Make Another Decision
                   </Button>
                 </CardContent>
@@ -464,6 +460,17 @@ export default function DecisionHelper() {
           )}
         </div>
       </div>
+    {loading && (
+      <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+          <div>
+            <img 
+              src="/loading-animation.gif" 
+              alt="Loading..." 
+              className="w-128 h-128 mx-auto"
+            />
+          </div>
+      </div>
+    )}
     </div>
   )
 }
