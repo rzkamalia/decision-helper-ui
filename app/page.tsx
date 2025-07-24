@@ -38,20 +38,6 @@ interface DecisionResponse {
   user_id: string
 }
 
-const Bubble = ({ size, left, delay, duration }: { size: number; left: number; delay: number; duration: number }) => (
-  <div
-    className="absolute rounded-full bg-white/20 animate-float"
-    style={{
-      width: `${size}px`,
-      height: `${size}px`,
-      left: `${left}%`,
-      bottom: "-100px",
-      animationDelay: `${delay}s`,
-      animationDuration: `${duration}s`,
-    }}
-  />
-)
-
 export default function DecisionHelper() {
   const [step, setStep] = useState<"input" | "questions" | "result">("input")
   const [context, setContext] = useState("")
@@ -65,14 +51,6 @@ export default function DecisionHelper() {
   const [currentQuestion, setCurrentQuestion] = useState(0)
   const [apiUrl] = useState("http://localhost:8000")
   const [error, setError] = useState("")
-
-  const bubbles = Array.from({ length: 15 }, (_, i) => ({
-    id: i,
-    size: Math.random() * 80 + 30, // 30-110px
-    left: Math.random() * 100, // 0-100%
-    delay: Math.random() * 20, // 0-20s delay
-    duration: Math.random() * 15 + 20, // 20-35s duration
-  }))
 
   const addOption = () => {
     setOptions([...options, ""])
