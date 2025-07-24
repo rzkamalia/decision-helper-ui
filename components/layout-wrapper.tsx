@@ -32,7 +32,8 @@ export function LayoutWrapper({ children }: LayoutWrapperProps) {
       {loading && (
         <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
           <div>
-            <img src="/loading-animation.gif" alt="Loading..." className="w-32 h-32 mx-auto" />          </div>
+            <img src="/loading-animation.gif" alt="Loading..." className="w-32 h-32 mx-auto" />
+          </div>
         </div>
       )}
     </div>

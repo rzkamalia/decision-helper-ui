@@ -42,6 +42,9 @@ interface DecisionContextType {
   updateOption: (index: number, value: string) => void
   generateQuestions: () => Promise<void>
   generateDecision: () => Promise<void>
+  undoAnswer: (questionIndex: number) => void
+  clearAllAnswers: () => void
+  goBackToQuestions: () => void
 }
 
 const DecisionContext = createContext<DecisionContextType | undefined>(undefined)
@@ -59,7 +62,6 @@ export function DecisionProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [apiUrl] = useState("http://localhost:8000")
-
   const [isInitialized, setIsInitialized] = useState(false)
 
   // Load state from localStorage on mount
@@ -99,7 +101,7 @@ export function DecisionProvider({ children }: { children: ReactNode }) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave))
     }
   }, [context, options, questions, answers, webSearch, userId, decision, isInitialized])
-  
+
   const addOption = () => {
     setOptions([...options, ""])
   }
@@ -114,6 +116,12 @@ export function DecisionProvider({ children }: { children: ReactNode }) {
     const newOptions = [...options]
     newOptions[index] = value
     setOptions(newOptions)
+  }
+
+  const undoAnswer = (questionIndex: number) => {
+    const newAnswers = { ...answers }
+    delete newAnswers[questionIndex]
+    setAnswers(newAnswers)
   }
 
   const generateQuestions = async () => {
@@ -207,6 +215,10 @@ export function DecisionProvider({ children }: { children: ReactNode }) {
     setUserId("")
     setDecision(null)
     setError("")
+    // Clear localStorage
+    if (typeof window !== "undefined") {
+      localStorage.removeItem(STORAGE_KEY)
+    }
   }
 
   return (
@@ -237,6 +249,7 @@ export function DecisionProvider({ children }: { children: ReactNode }) {
         updateOption,
         generateQuestions,
         generateDecision,
+        undoAnswer,
       }}
     >
       {children}

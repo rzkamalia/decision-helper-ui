@@ -6,13 +6,13 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { ArrowRight, ArrowLeft, Trophy } from "lucide-react"
+import { ArrowRight, ArrowLeft, Trophy, RotateCcw } from "lucide-react"
 import { useDecision } from "@/lib/decision-context"
 import { LayoutWrapper } from "@/components/layout-wrapper"
 
 export default function QuestionsPage() {
   const router = useRouter()
-  const { questions, answers, loading, setAnswers, generateDecision } = useDecision()
+  const { questions, answers, loading, setAnswers, generateDecision, undoAnswer } = useDecision()
 
   const [currentQuestion, setCurrentQuestion] = useState(0)
 
@@ -47,17 +47,41 @@ export default function QuestionsPage() {
     }
   }
 
+  const handleUndoCurrentAnswer = () => {
+    undoAnswer(currentQuestion)
+  }
+
   if (questions.length === 0) {
     return null // Will redirect in useEffect
   }
+
+  const answeredCount = Object.keys(answers).length
+  const totalQuestions = questions.length
 
   return (
     <LayoutWrapper>
       <div className="space-y-8">
         <Card className="shadow-2xl bg-blue-950 backdrop-blur-xl animate-slide-up">
           <CardHeader className="text-center">
-            <p className="text-blue-200 text-lg font-medium mb-4">
-              {currentQuestion + 1} of {questions.length} questions
+            <div className="flex items-center justify-between">
+                <div className="flex ">                 
+                    {/* Left side - empty or add other content here */}
+                </div>
+              <div className="flex ">
+                {answers[currentQuestion] && (
+                  <Button
+                    size="sm"
+                    onClick={handleUndoCurrentAnswer}
+                    className="bg-blue-200 text-blue-950 hover:bg-red-100 hover:text-red-600"
+                  >
+                    <RotateCcw className="w-4 h-4 mr-1" />
+                    Undo
+                  </Button>
+                )}
+              </div>
+            </div>
+              <p className="text-blue-200 text-lg font-medium">
+              {answeredCount} of {totalQuestions} questions answered
             </p>
           </CardHeader>
           <CardContent className="space-y-8">
@@ -110,7 +134,7 @@ export default function QuestionsPage() {
                 disabled={currentQuestion === 0}
                 className="flex-1 h-12 bg-blue-200 text-blue-950 hover:bg-blue-950 hover:text-blue-200"
               >
-                <ArrowLeft className="w-4 h-4 ml-2" />
+                <ArrowLeft className="w-4 h-4 mr-2" />
                 Previous
               </Button>
               {currentQuestion < questions.length - 1 ? (
@@ -132,7 +156,7 @@ export default function QuestionsPage() {
                     <>Analyzing...</>
                   ) : (
                     <>
-                      <Trophy className="w-5 h-5" />
+                      <Trophy className="w-5 h-5 mr-2" />
                       Get My Decision
                     </>
                   )}
