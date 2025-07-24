@@ -1,18 +1,26 @@
-import type { Metadata } from 'next'
-import './globals.css'
+import type React from "react"
+import type { Metadata } from "next"
+import { Inter } from "next/font/google"
+import "./globals.css"
+import { DecisionProvider } from "@/lib/decision-context"
+
+const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: 'Decision Helper',
+  title: "Decision Helper",
+  description: "Smart decisions. Made simple. Delivered with confidence.",
 }
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode
-}>) {
+}) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body className={inter.className}>
+        <DecisionProvider>{children}</DecisionProvider>
+      </body>
     </html>
   )
 }
