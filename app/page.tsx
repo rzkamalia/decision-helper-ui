@@ -29,7 +29,7 @@ export default function InputPage() {
         <CardContent className="space-y-8">
           <div className="space-y-4">
             <Label htmlFor="context" className="text-lg font-semibold text-blue-200 flex items-center gap-2">
-              <Brain className="w-5 h-5 text-blue-200" />
+              <Brain className="w-7 h-7 text-blue-200" />
               Decision Context
             </Label>
             <Textarea
@@ -44,7 +44,7 @@ export default function InputPage() {
 
           <div className="space-y-4">
             <Label className="text-lg font-semibold text-blue-200 flex items-center gap-2">
-              <Target className="w-5 h-5 text-blue-200" />
+              <Target className="w-7 h-7 text-blue-200" />
               Your Options
             </Label>
             <div className="space-y-4">

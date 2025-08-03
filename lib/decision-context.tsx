@@ -61,7 +61,8 @@ export function DecisionProvider({ children }: { children: ReactNode }) {
   const [decision, setDecision] = useState<DecisionResponse | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
-  const [apiUrl] = useState("http://localhost:8000")
+  // const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://209.97.173.154:8000"
+  const apiUrl = "http://0.0.0.0:8000"
   const [isInitialized, setIsInitialized] = useState(false)
 
   // Load state from localStorage on mount
@@ -154,7 +155,7 @@ export function DecisionProvider({ children }: { children: ReactNode }) {
       const data = await response.json()
       console.log("Success response:", data)
       setQuestions(data.questions)
-      setWebSearch(data.web_search)
+      setWebSearch(data.web_search_content)
       setUserId(data.user_id)
     } catch (err) {
       console.error("Request error:", err)
@@ -185,8 +186,8 @@ export function DecisionProvider({ children }: { children: ReactNode }) {
           user_id: userId,
           context,
           options: options.filter((opt) => opt.trim() !== ""),
-          web_search: webSearch,
           question_answer_pairs: questionAnswerPairs,
+          web_search_content: webSearch,
         }),
       })
 

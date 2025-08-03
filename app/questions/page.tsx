@@ -55,7 +55,6 @@ export default function QuestionsPage() {
     return null // Will redirect in useEffect
   }
 
-  const answeredCount = Object.keys(answers).length
   const totalQuestions = questions.length
 
   return (
@@ -65,7 +64,9 @@ export default function QuestionsPage() {
           <CardHeader className="text-center">
             <div className="flex items-center justify-between">
                 <div className="flex ">                 
-                    {/* Left side - empty or add other content here */}
+                  <p className="text-blue-200 text-lg font-medium">
+                  Question {currentQuestion+1} of {totalQuestions}
+                  </p>
                 </div>
               <div className="flex ">
                 {answers[currentQuestion] && (
@@ -80,9 +81,6 @@ export default function QuestionsPage() {
                 )}
               </div>
             </div>
-              <p className="text-blue-200 text-lg font-medium">
-              {answeredCount} of {totalQuestions} questions answered
-            </p>
           </CardHeader>
           <CardContent className="space-y-8">
             <div className="space-y-6">
