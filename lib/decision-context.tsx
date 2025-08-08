@@ -13,10 +13,16 @@ interface DecisionResponse {
   user_id: string
 }
 
+interface Option {
+  type: "text" | "image"
+  content: string // For text: the text content, for image: base64 data URL
+  file?: File // Store original file for image options
+}
+
 interface DecisionContextType {
   // State
   context: string
-  options: string[]
+  options: Option[]
   questions: Question[]
   answers: Record<number, string>
   webSearch: string
@@ -25,10 +31,11 @@ interface DecisionContextType {
   loading: boolean
   error: string
   apiUrl: string
+  isImageMode: boolean
 
   // Actions
   setContext: (context: string) => void
-  setOptions: (options: string[]) => void
+  setOptions: (options: Option[]) => void
   setQuestions: (questions: Question[]) => void
   setAnswers: (answers: Record<number, string>) => void
   setWebSearch: (webSearch: string) => void
@@ -40,20 +47,29 @@ interface DecisionContextType {
   addOption: () => void
   removeOption: (index: number) => void
   updateOption: (index: number, value: string) => void
+  updateImageOption: (index: number, file: File) => void
+  clearImageOption: (index: number) => void
   generateQuestions: () => Promise<void>
   generateDecision: () => Promise<void>
   undoAnswer: (questionIndex: number) => void
   clearAllAnswers: () => void
   goBackToQuestions: () => void
+  switchToTextMode: () => void
 }
 
 const DecisionContext = createContext<DecisionContextType | undefined>(undefined)
 
 const STORAGE_KEY = "decision-helper-state"
 
+// Default initial state - always starts in text mode
+const getInitialOptions = (): Option[] => [
+  { type: "text", content: "" },
+  { type: "text", content: "" },
+]
+
 export function DecisionProvider({ children }: { children: ReactNode }) {
   const [context, setContext] = useState("")
-  const [options, setOptions] = useState<string[]>(["", ""])
+  const [options, setOptions] = useState<Option[]>(getInitialOptions())
   const [questions, setQuestions] = useState<Question[]>([])
   const [answers, setAnswers] = useState<Record<number, string>>({})
   const [webSearch, setWebSearch] = useState("")
@@ -65,6 +81,9 @@ export function DecisionProvider({ children }: { children: ReactNode }) {
   const apiUrl = "http://0.0.0.0:8000"
   const [isInitialized, setIsInitialized] = useState(false)
 
+  // Check if we're in image mode (any option has an image)
+  const isImageMode = options.some((option) => option.type === "image")
+
   // Load state from localStorage on mount
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -73,15 +92,39 @@ export function DecisionProvider({ children }: { children: ReactNode }) {
         if (savedState) {
           const parsedState = JSON.parse(savedState)
           setContext(parsedState.context || "")
-          setOptions(parsedState.options || ["", ""])
+
+          // Handle options with backward compatibility
+          if (parsedState.options && Array.isArray(parsedState.options)) {
+            if (typeof parsedState.options[0] === "string") {
+              // Convert old string array format to new Option format
+              setOptions(parsedState.options.map((opt: string) => ({ type: "text" as const, content: opt })))
+            } else {
+              // Use saved options, but ensure we have at least 2 options and they start as text if empty
+              const savedOptions = parsedState.options || getInitialOptions()
+              if (savedOptions.length < 2) {
+                setOptions(getInitialOptions())
+              } else {
+                setOptions(savedOptions)
+              }
+            }
+          } else {
+            // No saved options, use initial text options
+            setOptions(getInitialOptions())
+          }
+
           setQuestions(parsedState.questions || [])
           setAnswers(parsedState.answers || {})
           setWebSearch(parsedState.webSearch || "")
           setUserId(parsedState.userId || "")
           setDecision(parsedState.decision || null)
+        } else {
+          // No saved state - ensure we start with text mode
+          setOptions(getInitialOptions())
         }
       } catch (error) {
         console.error("Error loading state from localStorage:", error)
+        // On error, default to text mode
+        setOptions(getInitialOptions())
       }
       setIsInitialized(true)
     }
@@ -92,7 +135,7 @@ export function DecisionProvider({ children }: { children: ReactNode }) {
     if (isInitialized && typeof window !== "undefined") {
       const stateToSave = {
         context,
-        options,
+        options: options.map((opt) => ({ type: opt.type, content: opt.content })), // Don't save File objects
         questions,
         answers,
         webSearch,
@@ -104,19 +147,73 @@ export function DecisionProvider({ children }: { children: ReactNode }) {
   }, [context, options, questions, answers, webSearch, userId, decision, isInitialized])
 
   const addOption = () => {
-    setOptions([...options, ""])
+    // In image mode, max 3 options
+    if (isImageMode && options.length >= 3) return
+
+    const newOptionType = isImageMode ? "image" : "text"
+    setOptions([...options, { type: newOptionType, content: "" }])
   }
 
   const removeOption = (index: number) => {
     if (options.length > 2) {
-      setOptions(options.filter((_, i) => i !== index))
+      const newOptions = options.filter((_, i) => i !== index)
+      setOptions(newOptions)
+
+      // Check if we need to auto-switch to text mode after removing an option
+      const hasAnyImages = newOptions.some((opt) => opt.type === "image" && opt.content.trim() !== "")
+      if (!hasAnyImages && newOptions.some((opt) => opt.type === "image")) {
+        // If no images left but still in image mode, switch to text mode
+        setOptions(newOptions.map(() => ({ type: "text", content: "" })))
+      }
     }
   }
 
   const updateOption = (index: number, value: string) => {
+    // Only allow text updates if not in image mode
+    if (isImageMode) return
+
     const newOptions = [...options]
-    newOptions[index] = value
+    newOptions[index] = { type: "text", content: value }
     setOptions(newOptions)
+  }
+
+  const updateImageOption = (index: number, file: File) => {
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      const newOptions = [...options]
+      newOptions[index] = {
+        type: "image",
+        content: e.target?.result as string,
+        file: file,
+      }
+      setOptions(newOptions)
+
+      // If this is the first image, convert all other options to image type
+      if (!isImageMode) {
+        const updatedOptions = newOptions.map((opt, i) => (i === index ? opt : { type: "image" as const, content: "" }))
+        // Limit to 3 options when switching to image mode
+        setOptions(updatedOptions.slice(0, 3))
+      }
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const clearImageOption = (index: number) => {
+    const newOptions = [...options]
+    newOptions[index] = { type: "image", content: "" }
+    setOptions(newOptions)
+
+    // Check if all images are now empty - if so, auto-switch to text mode
+    const hasAnyImages = newOptions.some((opt) => opt.type === "image" && opt.content.trim() !== "")
+    if (!hasAnyImages) {
+      // All images are cleared, switch to text mode
+      setOptions(getInitialOptions())
+    }
+  }
+
+  const switchToTextMode = () => {
+    // Reset all options to text mode with empty content
+    setOptions(getInitialOptions())
   }
 
   const undoAnswer = (questionIndex: number) => {
@@ -130,6 +227,12 @@ export function DecisionProvider({ children }: { children: ReactNode }) {
     setError("")
     try {
       console.log("Making request to:", `${apiUrl}/generate-questions`)
+
+      // Convert options to the format expected by the API
+      const apiOptions = options
+        .filter((opt) => opt.content.trim() !== "")
+        .map((opt) => (opt.type === "image" ? `[Image: ${opt.file?.name || "uploaded image"}]` : opt.content))
+
       const response = await fetch(`${apiUrl}/generate-questions`, {
         method: "POST",
         headers: {
@@ -139,7 +242,7 @@ export function DecisionProvider({ children }: { children: ReactNode }) {
         mode: "cors",
         body: JSON.stringify({
           context,
-          options: options.filter((opt) => opt.trim() !== ""),
+          options: apiOptions,
         }),
       })
 
@@ -175,6 +278,12 @@ export function DecisionProvider({ children }: { children: ReactNode }) {
       }))
 
       console.log("Making decision request to:", `${apiUrl}/generate-decision`)
+
+      // Convert options to the format expected by the API
+      const apiOptions = options
+        .filter((opt) => opt.content.trim() !== "")
+        .map((opt) => (opt.type === "image" ? `[Image: ${opt.file?.name || "uploaded image"}]` : opt.content))
+
       const response = await fetch(`${apiUrl}/generate-decision`, {
         method: "POST",
         headers: {
@@ -185,7 +294,7 @@ export function DecisionProvider({ children }: { children: ReactNode }) {
         body: JSON.stringify({
           user_id: userId,
           context,
-          options: options.filter((opt) => opt.trim() !== ""),
+          options: apiOptions,
           question_answer_pairs: questionAnswerPairs,
           web_search_content: webSearch,
         }),
@@ -209,7 +318,7 @@ export function DecisionProvider({ children }: { children: ReactNode }) {
 
   const resetForm = () => {
     setContext("")
-    setOptions(["", ""])
+    setOptions(getInitialOptions())
     setQuestions([])
     setAnswers({})
     setWebSearch("")
@@ -220,6 +329,14 @@ export function DecisionProvider({ children }: { children: ReactNode }) {
     if (typeof window !== "undefined") {
       localStorage.removeItem(STORAGE_KEY)
     }
+  }
+
+  const clearAllAnswers = () => {
+    setAnswers({})
+  }
+
+  const goBackToQuestions = () => {
+    setDecision(null)
   }
 
   return (
@@ -235,6 +352,7 @@ export function DecisionProvider({ children }: { children: ReactNode }) {
         loading,
         error,
         apiUrl,
+        isImageMode,
         setContext,
         setOptions,
         setQuestions,
@@ -248,9 +366,14 @@ export function DecisionProvider({ children }: { children: ReactNode }) {
         addOption,
         removeOption,
         updateOption,
+        updateImageOption,
+        clearImageOption,
         generateQuestions,
         generateDecision,
         undoAnswer,
+        clearAllAnswers,
+        goBackToQuestions,
+        switchToTextMode,
       }}
     >
       {children}
