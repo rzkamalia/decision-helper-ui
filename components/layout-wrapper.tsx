@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { Brain, Sparkle } from "lucide-react"
 import { useDecision } from "@/lib/decision-context"
 
@@ -12,14 +11,13 @@ interface LayoutWrapperProps {
 export function LayoutWrapper({ children }: LayoutWrapperProps) {
   const { loading } = useDecision()
 
-
   return (
-    <div className="relative w-full h-screen overflow-hidden">
+    <div className="relative w-full min-h-screen">
       {/* Base gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-200 via-blue-950 to-blue-950" />
+      <div className="fixed inset-0 bg-gradient-to-br from-blue-200 via-blue-950 to-blue-950" />
 
       {/* Animated flowing shapes */}
-      <div className="absolute inset-0">
+      <div className="fixed inset-0">
         {/* Shape 1 - Slow rotation */}
         <div className="absolute -top-1/4 -right-1/4 w-[150%] h-[150%] opacity-80 animate-spin-slow">
           <div className="w-full h-full bg-gradient-to-bl from-blue-200 via-blue-950 to-transparent rounded-[50%] transform rotate-12" />
@@ -42,22 +40,23 @@ export function LayoutWrapper({ children }: LayoutWrapperProps) {
       </div>
 
       {/* Subtle overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-yellow via-transparent to-yellow" />
+      <div className="fixed inset-0 bg-gradient-to-t from-yellow via-transparent to-yellow" />
 
-       <div className="relative z-10 p-4 min-h-screen flex items-center justify-center">
-        <div className="max-w-4xl w-full">
-          <div className="text-center mb-6 animate-fade-in">
+      <div className="relative z-10 p-4 min-h-screen">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-6 animate-fade-in py-8">
             <div className="flex items-center justify-center gap-3 mb-6">
               <div className="relative w-[72px] h-[72px]">
                 <Brain className="w-full h-full text-blue-200" />
                 <Sparkle className="w-8 h-8 text-yellow-600 absolute -top-4 -right-4 animate-spin" />
               </div>
-              <h1 className="text-7xl font-bold text-blue-200 bg-clip-text">Decision Helper</h1>
+              <h1 className="text-4xl md:text-7xl font-bold text-blue-200 bg-clip-text">Decision Helper</h1>
             </div>
           </div>
-          {children}
+          <div className="pb-8">{children}</div>
         </div>
       </div>
+
       {loading && (
         <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
           <div>
@@ -65,7 +64,6 @@ export function LayoutWrapper({ children }: LayoutWrapperProps) {
           </div>
         </div>
       )}
-
     </div>
   )
 }
