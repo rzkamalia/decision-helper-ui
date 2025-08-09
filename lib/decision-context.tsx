@@ -17,6 +17,7 @@ interface Option {
   type: "text" | "image"
   content: string // For text: the text content, for image: base64 data URL
   file?: File // Store original file for image options
+  base64?: string // Base64 encoded image data
 }
 
 interface DecisionContextType {
@@ -229,9 +230,31 @@ export function DecisionProvider({ children }: { children: ReactNode }) {
       console.log("Making request to:", `${apiUrl}/generate-questions`)
 
       // Convert options to the format expected by the API
-      const apiOptions = options
-        .filter((opt) => opt.content.trim() !== "")
-        .map((opt) => (opt.type === "image" ? `[Image: ${opt.file?.name || "uploaded image"}]` : opt.content))
+      const apiOptions = await Promise.all(
+        options
+          .filter((opt) => opt.content.trim() !== "")
+          .map(async (opt) => {
+            if (opt.type === "image" && opt.file) {
+              // Convert image file to base64
+              return new Promise<string>((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                  const result = e.target?.result as string;
+                  const base64Data = result.split(',')[1]; // Remove data:image/jpeg;base64, prefix
+                  resolve(base64Data);
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(opt.file!);
+              });
+            } else if (opt.type === "image" && opt.base64) {
+              // Use existing base64 data
+              return opt.base64;
+            } else {
+              // Text option
+              return opt.content;
+            }
+          })
+      );
 
       const response = await fetch(`${apiUrl}/generate-questions`, {
         method: "POST",
@@ -280,10 +303,31 @@ export function DecisionProvider({ children }: { children: ReactNode }) {
       console.log("Making decision request to:", `${apiUrl}/generate-decision`)
 
       // Convert options to the format expected by the API
-      const apiOptions = options
-        .filter((opt) => opt.content.trim() !== "")
-        .map((opt) => (opt.type === "image" ? `[Image: ${opt.file?.name || "uploaded image"}]` : opt.content))
-
+      const apiOptions = await Promise.all(
+        options
+          .filter((opt) => opt.content.trim() !== "")
+          .map(async (opt) => {
+            if (opt.type === "image" && opt.file) {
+              // Convert image file to base64
+              return new Promise<string>((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                  const result = e.target?.result as string;
+                  const base64Data = result.split(',')[1]; // Remove data:image/jpeg;base64, prefix
+                  resolve(base64Data);
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(opt.file!);
+              });
+            } else if (opt.type === "image" && opt.base64) {
+              // Use existing base64 data
+              return opt.base64;
+            } else {
+              // Text option
+              return opt.content;
+            }
+          })
+      );
       const response = await fetch(`${apiUrl}/generate-decision`, {
         method: "POST",
         headers: {
