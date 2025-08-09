@@ -38,9 +38,35 @@ export default function InputPage() {
     router.push("/questions")
   }
 
-  const handleImageUpload = (index: number, file: File) => {
+  const handleImageUpload = async (index: number, file: File) => {
     if (file && file.type.startsWith("image/")) {
-      updateImageOption(index, file)
+      const img = new window.Image()
+      img.src = URL.createObjectURL(file)
+      img.onload = () => {
+        const maxDim = 640
+        let { width, height } = img
+        if (width > maxDim || height > maxDim) {
+          const scale = Math.min(maxDim / width, maxDim / height)
+          width = Math.round(width * scale)
+          height = Math.round(height * scale)
+        }
+        const canvas = document.createElement("canvas")
+        canvas.width = width
+        canvas.height = height
+        const ctx = canvas.getContext("2d")
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height)
+          canvas.toBlob(
+            (blob) => {
+              if (blob) {
+                const resizedFile = new File([blob], file.name, { type: file.type })
+                updateImageOption(index, resizedFile)
+              }
+            },
+            file.type
+          )
+        }
+      }
     }
   }
 
