@@ -26,19 +26,41 @@ export default function ResultPage() {
       return () => clearTimeout(timer)
     }
   }, [decision, router])
-  
+
   const handleReset = () => {
     resetForm()
     router.push("/")
   }
 
   // Helper function to check if a string is a base64 image
-  const isBase64Image = (str) => {
-    if (typeof str !== 'string') return false
-    
+  const isBase64Image = (str: string) => {
+    if (typeof str !== "string") return false
+
     // Check if it's a data URL with base64 image
-    const base64ImageRegex = /^data:image\/(png|jpe?g|gif|webp|svg\+xml);base64,/i
+    const base64ImageRegex = /^data:image\/(png|jpeg|jpg|gif|webp|svg\+xml);base64,/i
     return base64ImageRegex.test(str)
+  }
+
+  // Helper function to check if string looks like base64 text (not an image)
+  const isBase64Text = (str: string) => {
+    if (typeof str !== "string") return false
+
+    // If it's already a data URL, it's not base64 text
+    if (str.startsWith("data:")) return false
+
+    // Check if it looks like base64 encoded text (no spaces, only base64 chars, reasonable length)
+    const base64Regex = /^[A-Za-z0-9+/]*={0,2}$/
+    return base64Regex.test(str) && str.length > 20 && str.length % 4 === 0
+  }
+
+  // Helper function to decode base64 text
+  const decodeBase64Text = (str: string) => {
+    try {
+      return atob(str)
+    } catch (error) {
+      console.error("Failed to decode base64:", error)
+      return str // Return original if decoding fails
+    }
   }
 
   if (!decision) {
@@ -46,6 +68,8 @@ export default function ResultPage() {
   }
 
   const isImage = isBase64Image(decision.chosen_option)
+  const isEncodedText = !isImage && isBase64Text(decision.chosen_option)
+  const displayText = isEncodedText ? decodeBase64Text(decision.chosen_option) : decision.chosen_option
 
   return (
     <LayoutWrapper>
@@ -62,14 +86,20 @@ export default function ResultPage() {
             <div className="flex justify-center">
               {isImage ? (
                 <div className="bg-yellow-600 p-4 rounded-2xl shadow-lg">
-                  <img 
-                    src={decision.chosen_option} 
+                  <img
+                    src={decision.chosen_option || "/placeholder.svg"}
+                    alt="Your chosen option"
                     className="max-w-full max-h-96 object-contain rounded-lg"
+                    onError={(e) => {
+                      console.error("Image failed to load:", decision.chosen_option)
+                      // Hide the image if it fails to load
+                      e.currentTarget.style.display = "none"
+                    }}
                   />
                 </div>
               ) : (
                 <Badge className="text-4xl rounded-none px-4 py-4 bg-yellow-600 text-blue-950 font-bold hover:bg-yellow-600">
-                  {decision.chosen_option}
+                  {displayText}
                 </Badge>
               )}
             </div>
