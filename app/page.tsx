@@ -80,7 +80,7 @@ export default function InputPage() {
         <CardHeader className="text-center pb-8"></CardHeader>
         <CardContent className="space-y-8">
           <div className="space-y-4">
-            <Label htmlFor="context" className="text-lg font-semibold text-blue-200 flex items-center gap-2">
+            <Label htmlFor="context" className="text-lg font-bold text-blue-200 flex items-center gap-2">
               <Brain className="w-7 h-7 text-blue-200" />
               Decision Context
             </Label>
@@ -96,7 +96,7 @@ export default function InputPage() {
 
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <Label className="text-lg font-semibold text-blue-200 flex items-center gap-2">
+              <Label className="text-lg font-bold text-blue-200 flex items-center gap-2">
                 <Target className="w-7 h-7 text-blue-200" />
                 Your Options
               </Label>
@@ -134,7 +134,10 @@ export default function InputPage() {
                           )}
                         </div>
                         <input
-                          ref={(el) => (fileInputRefs.current[index] = el)}
+                          ref={(el) => {
+                            // Added null check to avoid potential type issues
+                            if (el) fileInputRefs.current[index] = el
+                          }}
                           type="file"
                           accept="image/*"
                           onChange={(e) => {
@@ -159,7 +162,10 @@ export default function InputPage() {
                         </div>
                         {/* Hidden file input for potential image upload */}
                         <input
-                          ref={(el) => (fileInputRefs.current[index] = el)}
+                          ref={(el) => {
+                            // Added null check to avoid potential type issues
+                            if (el) fileInputRefs.current[index] = el
+                          }}
                           type="file"
                           accept="image/*"
                           onChange={(e) => {

@@ -42,18 +42,22 @@ export function LayoutWrapper({ children }: LayoutWrapperProps) {
       {/* Subtle overlay */}
       <div className="fixed inset-0 bg-gradient-to-t from-yellow via-transparent to-yellow" />
 
-      <div className="relative z-10 p-4 min-h-screen">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-6 animate-fade-in py-8">
-            <div className="flex items-center justify-center gap-3 mb-6">
-              <div className="relative w-[72px] h-[72px]">
+      {/* Main content container - always centered */}
+      <div className="relative z-10 min-h-screen flex items-center justify-center p-4">
+        <div className="w-full max-w-4xl mx-auto">
+          <div className="text-center mb-6 animate-fade-in">
+            {/* Responsive header - horizontal on larger screens, vertical on very small screens */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-6">
+              <div className="relative w-16 h-16 flex-shrink-0">
                 <Brain className="w-full h-full text-blue-200" />
                 <Sparkle className="w-8 h-8 text-yellow-600 absolute -top-4 -right-4 animate-spin" />
               </div>
-              <h1 className="text-4xl md:text-7xl font-bold text-blue-200 bg-clip-text">Decision Helper</h1>
+              <h1 className="text-3xl sm:text-6xl font-bold text-blue-200 bg-clip-text text-center sm:whitespace-nowrap">
+                Decision Helper
+              </h1>
             </div>
           </div>
-          <div className="pb-8">{children}</div>
+          <div className="w-full">{children}</div>
         </div>
       </div>
 
