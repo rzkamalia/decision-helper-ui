@@ -26,16 +26,26 @@ export default function ResultPage() {
       return () => clearTimeout(timer)
     }
   }, [decision, router])
-
-
+  
   const handleReset = () => {
     resetForm()
     router.push("/")
   }
 
+  // Helper function to check if a string is a base64 image
+  const isBase64Image = (str) => {
+    if (typeof str !== 'string') return false
+    
+    // Check if it's a data URL with base64 image
+    const base64ImageRegex = /^data:image\/(png|jpe?g|gif|webp|svg\+xml);base64,/i
+    return base64ImageRegex.test(str)
+  }
+
   if (!decision) {
     return null // Will redirect in useEffect
   }
+
+  const isImage = isBase64Image(decision.chosen_option)
 
   return (
     <LayoutWrapper>
@@ -49,10 +59,19 @@ export default function ResultPage() {
               </div>
             </div>
             <CardTitle className="text-2xl text-blue-200 mb-4">🎉 Your Perfect Choice 🎉</CardTitle>
-            <div className="inline-block">
-              <Badge className="text-4xl rounded-none px-4 py-4 bg-yellow-600 text-blue-950 font-bold hover:bg-yellow-600">
-                {decision.chosen_option}
-              </Badge>
+            <div className="flex justify-center">
+              {isImage ? (
+                <div className="bg-yellow-600 p-4 rounded-2xl shadow-lg">
+                  <img 
+                    src={decision.chosen_option} 
+                    className="max-w-full max-h-96 object-contain rounded-lg"
+                  />
+                </div>
+              ) : (
+                <Badge className="text-4xl rounded-none px-4 py-4 bg-yellow-600 text-blue-950 font-bold hover:bg-yellow-600">
+                  {decision.chosen_option}
+                </Badge>
+              )}
             </div>
           </CardHeader>
           <CardContent className="space-y-8">
@@ -65,7 +84,7 @@ export default function ResultPage() {
             </div>
             <Button
               onClick={handleReset}
-              className="w-full h-16 text-l bg-blue-200 hover:bg-blue-950 text-blue-950 hover:text-blue-200 border transition-all duration-300 transform hover:scale-105"
+              className="w-full h-16 text-l bg-blue-950 hover:bg-blue-200 text-blue-200 hover:text-blue-950 border transition-all duration-300 transform hover:scale-105"
             >
               Make Another Decision
             </Button>

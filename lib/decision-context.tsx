@@ -26,7 +26,9 @@ interface DecisionContextType {
   options: Option[]
   questions: Question[]
   answers: Record<number, string>
+  imageContent: string
   webSearch: string
+  
   userId: string
   decision: DecisionResponse | null
   loading: boolean
@@ -39,6 +41,7 @@ interface DecisionContextType {
   setOptions: (options: Option[]) => void
   setQuestions: (questions: Question[]) => void
   setAnswers: (answers: Record<number, string>) => void
+  setImageContent: (imageContent: string) => void
   setWebSearch: (webSearch: string) => void
   setUserId: (userId: string) => void
   setDecision: (decision: DecisionResponse | null) => void
@@ -73,13 +76,13 @@ export function DecisionProvider({ children }: { children: ReactNode }) {
   const [options, setOptions] = useState<Option[]>(getInitialOptions())
   const [questions, setQuestions] = useState<Question[]>([])
   const [answers, setAnswers] = useState<Record<number, string>>({})
+  const [imageContent, setImageContent] = useState("")
   const [webSearch, setWebSearch] = useState("")
   const [userId, setUserId] = useState("")
   const [decision, setDecision] = useState<DecisionResponse | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
-  // const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://209.97.173.154:8000"
-  const apiUrl = "http://0.0.0.0:8000"
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL
   const [isInitialized, setIsInitialized] = useState(false)
 
   // Check if we're in image mode (any option has an image)
@@ -115,6 +118,7 @@ export function DecisionProvider({ children }: { children: ReactNode }) {
 
           setQuestions(parsedState.questions || [])
           setAnswers(parsedState.answers || {})
+          setImageContent(parsedState.imageContent || "")
           setWebSearch(parsedState.webSearch || "")
           setUserId(parsedState.userId || "")
           setDecision(parsedState.decision || null)
@@ -139,13 +143,14 @@ export function DecisionProvider({ children }: { children: ReactNode }) {
         options: options.map((opt) => ({ type: opt.type, content: opt.content })), // Don't save File objects
         questions,
         answers,
+        imageContent,
         webSearch,
         userId,
         decision,
       }
       localStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave))
     }
-  }, [context, options, questions, answers, webSearch, userId, decision, isInitialized])
+  }, [context, options, questions, answers, imageContent, webSearch, userId, decision, isInitialized])
 
   const addOption = () => {
     // In image mode, max 3 options
@@ -229,19 +234,17 @@ export function DecisionProvider({ children }: { children: ReactNode }) {
     try {
       console.log("Making request to:", `${apiUrl}/generate-questions`)
 
-      // Convert options to the format expected by the API
       const apiOptions = await Promise.all(
         options
           .filter((opt) => opt.content.trim() !== "")
           .map(async (opt) => {
             if (opt.type === "image" && opt.file) {
-              // Convert image file to base64
+              // Convert image file to base64 with full data URL
               return new Promise<string>((resolve, reject) => {
                 const reader = new FileReader();
                 reader.onload = (e) => {
                   const result = e.target?.result as string;
-                  const base64Data = result.split(',')[1]; // Remove data:image/jpeg;base64, prefix
-                  resolve(base64Data);
+                  resolve(result); // Keep the full data URL format
                 };
                 reader.onerror = reject;
                 reader.readAsDataURL(opt.file!);
@@ -281,6 +284,7 @@ export function DecisionProvider({ children }: { children: ReactNode }) {
       const data = await response.json()
       console.log("Success response:", data)
       setQuestions(data.questions)
+      setImageContent(data.image_content)
       setWebSearch(data.web_search_content)
       setUserId(data.user_id)
     } catch (err) {
@@ -340,6 +344,7 @@ export function DecisionProvider({ children }: { children: ReactNode }) {
           context,
           options: apiOptions,
           question_answer_pairs: questionAnswerPairs,
+          image_content: imageContent,
           web_search_content: webSearch,
         }),
       })
@@ -365,6 +370,7 @@ export function DecisionProvider({ children }: { children: ReactNode }) {
     setOptions(getInitialOptions())
     setQuestions([])
     setAnswers({})
+    setImageContent("")
     setWebSearch("")
     setUserId("")
     setDecision(null)
@@ -390,6 +396,7 @@ export function DecisionProvider({ children }: { children: ReactNode }) {
         options,
         questions,
         answers,
+        imageContent,
         webSearch,
         userId,
         decision,
@@ -401,6 +408,7 @@ export function DecisionProvider({ children }: { children: ReactNode }) {
         setOptions,
         setQuestions,
         setAnswers,
+        setImageContent,
         setWebSearch,
         setUserId,
         setDecision,
