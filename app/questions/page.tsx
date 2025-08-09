@@ -63,11 +63,11 @@ export default function QuestionsPage() {
         <Card className="shadow-2xl bg-blue-950 backdrop-blur-xl animate-slide-up">
           <CardHeader className="text-center">
             <div className="flex items-center justify-between">
-                <div className="flex ">                 
-                  <p className="text-blue-200 text-lg font-medium">
-                  Question {currentQuestion+1} of {totalQuestions}
-                  </p>
-                </div>
+              <div className="flex ">
+                <p className="text-blue-200 text-lg font-medium">
+                  Question {currentQuestion + 1} of {totalQuestions}
+                </p>
+              </div>
               <div className="flex ">
                 {answers[currentQuestion] && (
                   <Button
@@ -94,6 +94,12 @@ export default function QuestionsPage() {
                 onValueChange={(value) => {
                   const newAnswers = { ...answers, [currentQuestion]: value }
                   setAnswers(newAnswers)
+
+                  // Remove focus from any active element to prevent hover state issues on mobile
+                  if (document.activeElement instanceof HTMLElement) {
+                    document.activeElement.blur()
+                  }
+
                   // Auto-advance to next question after a short delay (but not on last question)
                   if (currentQuestion < questions.length - 1) {
                     setTimeout(() => {
@@ -109,13 +115,29 @@ export default function QuestionsPage() {
                       className={`flex items-center p-4 rounded-xl border transition-all duration-300 cursor-pointer ${
                         answers[currentQuestion] === choice
                           ? "bg-yellow-600 text-blue-950"
-                          : "bg-blue-950 hover:bg-blue-200 text-blue-200 hover:text-blue-950"
+                          : "bg-blue-950 text-blue-200 hover:bg-blue-200 hover:text-blue-950 active:bg-blue-200 active:text-blue-950"
                       }`}
+                      onClick={() => {
+                        const newAnswers = { ...answers, [currentQuestion]: choice }
+                        setAnswers(newAnswers)
+
+                        // Remove focus to prevent hover state issues
+                        if (document.activeElement instanceof HTMLElement) {
+                          document.activeElement.blur()
+                        }
+
+                        // Auto-advance to next question
+                        if (currentQuestion < questions.length - 1) {
+                          setTimeout(() => {
+                            setCurrentQuestion(currentQuestion + 1)
+                          }, 300)
+                        }
+                      }}
                     >
                       <RadioGroupItem value={choice} id={`q${currentQuestion}-${choiceIndex}`} className="sr-only" />
                       <Label
                         htmlFor={`q${currentQuestion}-${choiceIndex}`}
-                        className="cursor-pointer text-lg leading-relaxed flex-1 transition-colors duration-300 w-full"
+                        className="cursor-pointer text-lg leading-relaxed flex-1 transition-colors duration-300 w-full pointer-events-none"
                       >
                         {choice}
                       </Label>

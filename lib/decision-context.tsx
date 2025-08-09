@@ -300,36 +300,14 @@ export function DecisionProvider({ children }: { children: ReactNode }) {
     setError("")
     try {
       const questionAnswerPairs = questions.map((question, index) => ({
-        question: question.question,
-        answer: answers[index] || "",
-      }))
+          question: question.question,
+          answer: answers[index] || "",
+        }))
 
-      console.log("Making decision request to:", `${apiUrl}/generate-decision`)
+      if (questionAnswerPairs.length === 0) {
+        throw new Error("Please answer at least one question before generating a decision")
+      }
 
-      // Convert options to the format expected by the API
-      const apiOptions = await Promise.all(
-        options
-          .filter((opt) => opt.content.trim() !== "")
-          .map(async (opt) => {
-            if (opt.type === "image" && opt.file) {
-              return new Promise<string>((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                  const result = e.target?.result as string;
-                  resolve(result);
-                };
-                reader.onerror = reject;
-                reader.readAsDataURL(opt.file!);
-              });
-            } else if (opt.type === "image" && opt.base64) {
-              // Use existing base64 data
-              return opt.base64;
-            } else {
-              // Text option
-              return opt.content;
-            }
-          })
-      );
       const response = await fetch(`${apiUrl}/generate-decision`, {
         method: "POST",
         headers: {
@@ -339,11 +317,7 @@ export function DecisionProvider({ children }: { children: ReactNode }) {
         mode: "cors",
         body: JSON.stringify({
           user_id: userId,
-          context,
-          options: apiOptions,
           question_answer_pairs: questionAnswerPairs,
-          image_content: imageContent,
-          web_search_content: webSearch,
         }),
       })
 

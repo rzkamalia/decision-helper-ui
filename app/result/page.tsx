@@ -85,11 +85,11 @@ export default function ResultPage() {
             <CardTitle className="text-2xl text-blue-200 mb-4">🎉 Your Perfect Choice 🎉</CardTitle>
             <div className="flex justify-center">
               {isImage ? (
-                <div className="bg-yellow-600 p-4 rounded-2xl shadow-lg">
+                <div className="bg-yellow-600 p-4 rounded-2xl shadow-lg max-w-sm">
                   <img
                     src={decision.chosen_option || "/placeholder.svg"}
                     alt="Your chosen option"
-                    className="max-w-full max-h-96 object-contain rounded-lg"
+                    className="w-full h-auto max-h-80 object-contain rounded-lg"
                     onError={(e) => {
                       console.error("Image failed to load:", decision.chosen_option)
                       // Hide the image if it fails to load
