@@ -312,13 +312,11 @@ export function DecisionProvider({ children }: { children: ReactNode }) {
           .filter((opt) => opt.content.trim() !== "")
           .map(async (opt) => {
             if (opt.type === "image" && opt.file) {
-              // Convert image file to base64
               return new Promise<string>((resolve, reject) => {
                 const reader = new FileReader();
                 reader.onload = (e) => {
                   const result = e.target?.result as string;
-                  const base64Data = result.split(',')[1]; // Remove data:image/jpeg;base64, prefix
-                  resolve(base64Data);
+                  resolve(result);
                 };
                 reader.onerror = reject;
                 reader.readAsDataURL(opt.file!);
