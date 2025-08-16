@@ -82,7 +82,7 @@ export function DecisionProvider({ children }: { children: ReactNode }) {
   const [decision, setDecision] = useState<DecisionResponse | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
-  const apiUrl: string = process.env.NEXT_PUBLIC_API_URL || "";
+  const apiUrl: string = process.env.NEXT_PUBLIC_API_URL || ""
   const [isInitialized, setIsInitialized] = useState(false)
 
   // Check if we're in image mode (any option has an image)
