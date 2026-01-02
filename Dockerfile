@@ -8,8 +8,8 @@ ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 
 WORKDIR /app
 
-COPY package.json pnpm-lock.yaml ./
-RUN npm install -g pnpm && pnpm install
+COPY package*.json ./
+RUN npm install --legacy-peer-deps
 
 COPY app ./app
 COPY components ./components
@@ -24,7 +24,7 @@ COPY postcss.config.mjs .
 COPY components.json .
 COPY next-env.d.ts .
 
-RUN pnpm run build
+RUN npm run build
 
 EXPOSE 3000
 CMD ["npm", "start"]
