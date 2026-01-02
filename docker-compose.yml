@@ -2,12 +2,8 @@ version: '3.8'
 
 services:
   fe:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      args:
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
-    image: fe:latest
+    image: fe_dc
+    container_name: fe
     ports:
       - "3000:3000"
     environment:

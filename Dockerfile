@@ -8,11 +8,23 @@ ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 
 WORKDIR /app
 
-COPY package*.json ./
-RUN npm install --legacy-peer-deps
+COPY package.json pnpm-lock.yaml ./
+RUN npm install -g pnpm && pnpm install
 
-COPY . .
-RUN npm run build
+COPY app ./app
+COPY components ./components
+COPY hooks ./hooks
+COPY lib ./lib
+COPY public ./public
+COPY styles ./styles
+COPY next.config.mjs .
+COPY tsconfig.json .
+COPY tailwind.config.ts .
+COPY postcss.config.mjs .
+COPY components.json .
+COPY next-env.d.ts .
+
+RUN pnpm run build
 
 EXPOSE 3000
 CMD ["npm", "start"]
