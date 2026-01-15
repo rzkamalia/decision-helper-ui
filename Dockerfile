@@ -1,16 +1,20 @@
-FROM node:18-slim
-
-# Build-time environment variable
-ARG NEXT_PUBLIC_API_URL
-
-# Make it available inside the container at runtime (optional for Node apps)
-ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+# Stage 1: Dependencies
+FROM node:18-alpine AS deps
 
 WORKDIR /app
 
 COPY package*.json ./
 RUN npm install --legacy-peer-deps
 
+# Stage 2: Build
+FROM node:18-alpine AS builder
+WORKDIR /app
+
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+
+COPY --from=deps /app/node_modules ./node_modules
+COPY package.json ./
 COPY app ./app
 COPY components ./components
 COPY hooks ./hooks
@@ -26,5 +30,25 @@ COPY next-env.d.ts .
 
 RUN npm run build
 
+# Stage 3: Production runner
+FROM node:18-alpine AS runner
+WORKDIR /app
+
+ENV NODE_ENV=production
+
+# Create non-root user for security
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nextjs
+
+# Copy only necessary files from builder
+COPY --from=builder /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+USER nextjs
+
 EXPOSE 3000
-CMD ["npm", "start"]
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
+
+CMD ["node", "server.js"]
